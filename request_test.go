@@ -8,7 +8,7 @@ import (
 func TestWriteOne(t *testing.T) {
 	// start cache
 	c, err := NewCache(CacheConfig{
-		id: "testuser",
+		ID: "testuser",
 	})
 	if err != nil {
 		t.Error(err)
@@ -25,9 +25,9 @@ func TestWriteOne(t *testing.T) {
 	}
 
 	// write data
-	err = c.writeOne(WriteOneRequest{
-		itemID: "0",
-		value:  encoded,
+	err = c.WriteOne(WriteOneRequest{
+		ItemID: "0",
+		Value:  encoded,
 	})
 	if err != nil {
 		t.Error(err)
@@ -35,8 +35,8 @@ func TestWriteOne(t *testing.T) {
 	}
 
 	// read data
-	item, err := c.readOne(ReadOneRequest{
-		itemID: "0",
+	item, err := c.ReadOne(ReadOneRequest{
+		ItemID: "0",
 	})
 	str := ""
 	err = item.DecodeInto(&str)
@@ -50,10 +50,10 @@ func TestWriteOne(t *testing.T) {
 	}
 
 	// write large data
-	largedata := make([]byte, c.config.sizelimit+1)
-	err = c.writeOne(WriteOneRequest{
-		itemID: "1",
-		value:  largedata,
+	largedata := make([]byte, c.config.SizeLimit+1)
+	err = c.WriteOne(WriteOneRequest{
+		ItemID: "1",
+		Value:  largedata,
 	})
 	if err != nil {
 		t.Error(err)
@@ -61,8 +61,8 @@ func TestWriteOne(t *testing.T) {
 	}
 
 	// read large item
-	item, err = c.readOne(ReadOneRequest{
-		itemID: "1",
+	item, err = c.ReadOne(ReadOneRequest{
+		ItemID: "1",
 	})
 	if err != nil {
 		t.Error(err)
@@ -77,7 +77,7 @@ func TestWriteOne(t *testing.T) {
 func TestEraseOne(t *testing.T) {
 	// start cache
 	c, err := NewCache(CacheConfig{
-		id: "testuser",
+		ID: "testuser",
 	})
 	if err != nil {
 		t.Error(err)
@@ -94,9 +94,9 @@ func TestEraseOne(t *testing.T) {
 	}
 
 	// write data
-	err = c.writeOne(WriteOneRequest{
-		itemID: "0",
-		value:  encoded,
+	err = c.WriteOne(WriteOneRequest{
+		ItemID: "0",
+		Value:  encoded,
 	})
 	if err != nil {
 		t.Error(err)
@@ -104,8 +104,8 @@ func TestEraseOne(t *testing.T) {
 	}
 
 	// delete data
-	err = c.eraseOne(EraseOneRequest{
-		itemID: "0",
+	err = c.EraseOne(EraseOneRequest{
+		ItemID: "0",
 	})
 	if err != nil {
 		t.Error(err)
@@ -113,8 +113,8 @@ func TestEraseOne(t *testing.T) {
 	}
 
 	// check if item still exists
-	_, err = c.readOne(ReadOneRequest{
-		itemID: "0",
+	_, err = c.ReadOne(ReadOneRequest{
+		ItemID: "0",
 	})
 	if !errors.Is(err, ErrUnknownID) {
 		t.Error("unexpected result, ErrUnkownID was expected")

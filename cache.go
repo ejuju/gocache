@@ -23,10 +23,10 @@ type Cache struct {
 // sizelimit sets the number of bytes for an item to be considered too big for in-memory (default: 500 kilobyte)
 // an item with a size that exceeds the sizelimit will be stored a to a file
 type CacheConfig struct {
-	id        string
-	interval  time.Duration
-	maxitems  int
-	sizelimit int
+	ID              string
+	MaxItems        int
+	SizeLimit       int
+	CleanupInterval time.Duration
 }
 
 // NewCache instantiates a cache
@@ -34,21 +34,21 @@ type CacheConfig struct {
 // it also creates a local directory to store temporary files
 func NewCache(config CacheConfig) (*Cache, error) {
 	// validate config, set defaults if needed
-	if config.id == "" {
-		config.id = time.Now().String()
+	if config.ID == "" {
+		config.ID = time.Now().String()
 	}
-	if config.interval <= 0 {
-		config.interval = 1 * time.Second
+	if config.CleanupInterval <= 0 {
+		config.CleanupInterval = 1 * time.Second
 	}
-	if config.maxitems <= 0 {
-		config.maxitems = 100 * 1000
+	if config.MaxItems <= 0 {
+		config.MaxItems = 100 * 1000
 	}
-	if config.sizelimit <= 0 {
-		config.sizelimit = 500 * 1024
+	if config.SizeLimit <= 0 {
+		config.SizeLimit = 500 * 1024
 	}
 
 	// define local path
-	dirpath := "_gdb_cache_" + config.id
+	dirpath := "_gdb_cache_" + config.ID
 
 	// remove old directory and files
 	err := os.RemoveAll(dirpath)
@@ -74,7 +74,7 @@ func NewCache(config CacheConfig) (*Cache, error) {
 // Start prepares the cache for being used
 // it starts the cleanup loop that will take care of removing expired items
 func (c *Cache) Start() {
-	go c.startCleanupLoop(c.config.interval)
+	go c.startCleanupLoop(c.config.CleanupInterval)
 }
 
 // Stop gracefully stops the cache
@@ -86,13 +86,11 @@ func (c *Cache) Stop() {
 func (c *Cache) removeExpiredItems() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	for _, item := range c.items {
-		// skip item if expired
-		if !item.isExpired() {
-			continue
-		}
 
-		delete(c.items, item.id)
+	for _, item := range c.items {
+		if item.isExpired() {
+			delete(c.items, item.id)
+		}
 	}
 }
 

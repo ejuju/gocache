@@ -21,21 +21,21 @@ const (
 // so if you want to make sure an item can't be overwritten, check if the item exists before
 type WriteOneRequest struct {
 	receivedAt time.Time
-	itemID     string
-	value      []byte
-	expiry     time.Time
+	ItemID     string
+	Value      []byte
+	Expiry     time.Time
 }
 
 //
 type EraseOneRequest struct {
 	receivedAt time.Time
-	itemID     string
+	ItemID     string
 }
 
 //
 type ReadOneRequest struct {
 	receivedAt time.Time
-	itemID     string
+	ItemID     string
 	// filters []Filter
 }
 
@@ -43,25 +43,25 @@ type ReadOneRequest struct {
 // type Filter struct {
 // }
 
-// writeOne creates or update an item if the request is valid
+// WriteOne creates or update an item if the request is valid
 // when the item exceeds the size limit, it is stored to a temporary file
-func (c *Cache) writeOne(woreq WriteOneRequest) error {
+func (c *Cache) WriteOne(woreq WriteOneRequest) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	// check max items
-	if len(c.items) >= c.config.maxitems {
+	if len(c.items) >= c.config.MaxItems {
 		return ErrMaxItemsReached
 	}
 
 	// create new item struct
 	item := &Item{
-		id:     woreq.itemID,
-		expiry: woreq.expiry,
+		id:     woreq.ItemID,
+		expiry: woreq.Expiry,
 	}
 
 	// if max item size exceeded, write data to temp file and store pointer to file in map
-	if len(woreq.value) > c.config.sizelimit {
+	if len(woreq.Value) > c.config.SizeLimit {
 		filename := "_bigitem_*.gdbi"
 		f, err := os.CreateTemp(c.dirpath, filename)
 		if err != nil {
@@ -70,7 +70,7 @@ func (c *Cache) writeOne(woreq WriteOneRequest) error {
 		defer f.Close()
 
 		// encode data
-		encoded, err := encode(woreq.value)
+		encoded, err := encode(woreq.Value)
 		if err != nil {
 			return err
 		}
@@ -80,37 +80,37 @@ func (c *Cache) writeOne(woreq WriteOneRequest) error {
 			return err
 		}
 		item.file = f
-		c.items[woreq.itemID] = item
+		c.items[woreq.ItemID] = item
 		return nil
 	}
 
 	// add data to item struct and write item to map
-	item.data = woreq.value
-	c.items[woreq.itemID] = item
+	item.data = woreq.Value
+	c.items[woreq.ItemID] = item
 
 	return nil
 }
 
-// eraseOne deletes an item if the request is valid
-func (c *Cache) eraseOne(eoreq EraseOneRequest) error {
+// EraseOne deletes an item if the request is valid
+func (c *Cache) EraseOne(eoreq EraseOneRequest) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	_, exists := c.items[eoreq.itemID]
+	_, exists := c.items[eoreq.ItemID]
 	if !exists {
 		return ErrUnknownID
 	}
 
-	delete(c.items, eoreq.itemID)
+	delete(c.items, eoreq.ItemID)
 	return nil
 }
 
-// readOne reads an item if the request is valid
-func (c *Cache) readOne(roreq ReadOneRequest) (*Item, error) {
+// ReadOne reads an item if the request is valid
+func (c *Cache) ReadOne(roreq ReadOneRequest) (*Item, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	item, ok := c.items[roreq.itemID]
+	item, ok := c.items[roreq.ItemID]
 	if !ok {
 		return nil, ErrUnknownID
 	}
