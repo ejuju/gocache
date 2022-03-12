@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/ejuju/gdb"
+	"github.com/ejuju/gocache"
 )
 
 func main() {
 	// init cache
-	cache, err := gdb.NewCache(gdb.CacheConfig{
+	cache, err := gocache.NewCache(gocache.CacheConfig{
 		ID:              "0",
 		CleanupInterval: 500 * time.Millisecond,
 		MaxItems:        500,
@@ -25,7 +25,7 @@ func main() {
 	defer cache.Stop()
 
 	// write one item
-	err = cache.WriteOne(gdb.WriteOneRequest{
+	err = cache.WriteOne(gocache.WriteOneRequest{
 		ItemID: "0",
 		Expiry: time.Now().Add(10 * time.Minute),
 		Value:  "hello",
@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// get one item
-	item, err := cache.ReadOne(gdb.ReadOneRequest{
+	item, err := cache.ReadOne(gocache.ReadOneRequest{
 		ItemID: "0",
 	})
 	if err != nil {
