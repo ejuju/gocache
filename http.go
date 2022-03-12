@@ -15,15 +15,30 @@ type RequestIdentifier interface {
 }
 
 //
+func NewRequestIdentifier(itemTTL time.Duration, identifyFunc func(*http.Request) string) *DefaultRequestIdentifier {
+	return &DefaultRequestIdentifier{
+		itemTTL:      itemTTL,
+		identifyFunc: identifyFunc,
+	}
+}
+
+//
 type DefaultRequestIdentifier struct {
-	TTL time.Duration
+	itemTTL      time.Duration
+	identifyFunc func(*http.Request) string
 }
 
 //
 func (dri *DefaultRequestIdentifier) Identify(r *http.Request) string {
-	return r.UserAgent()
+	return dri.identifyFunc(r)
 }
 
+//
+func (dri *DefaultRequestIdentifier) ItemTTL() time.Duration {
+	return dri.itemTTL
+}
+
+//
 type CachedResponse struct {
 	StatusCode int
 	Header     http.Header
@@ -31,8 +46,8 @@ type CachedResponse struct {
 	Body       []byte
 }
 
-// WrapHandler can be used to filter requests so that if they have a cached response already they are answered directly
-func (c *Cache) WrapHandler(in http.Handler, identifier RequestIdentifier, cacheConfig CacheConfig) (http.Handler, error) {
+// CacheHTTP can be used to filter requests so that if they have a cached response already they are answered directly
+func CacheHTTP(in http.Handler, identifier RequestIdentifier, cacheConfig CacheConfig) (http.Handler, error) {
 	// init response cache
 	c, err := NewCache(cacheConfig)
 	if err != nil {
@@ -44,23 +59,24 @@ func (c *Cache) WrapHandler(in http.Handler, identifier RequestIdentifier, cache
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// identify request
 		id := identifier.Identify(r)
+		if id == "" {
+			in.ServeHTTP(w, r)
+			return
+		}
 
 		// get cached response
 		item, err := c.ReadOne(ReadOneRequest{
 			ItemID: id,
 		})
-
-		// handle cache read err
+		// if error serve http anyway but log err
 		if err != nil && !errors.Is(err, ErrUnknownID) {
 			c.logErr(err)
-			// serve http if error
 			in.ServeHTTP(w, r)
 			return
 		}
 
 		// first request with this id
-		isFirstID := errors.Is(err, ErrUnknownID)
-		if isFirstID {
+		if errors.Is(err, ErrUnknownID) {
 			// record request result
 			resrec := httptest.NewRecorder()
 			// serve http and record response
@@ -73,21 +89,23 @@ func (c *Cache) WrapHandler(in http.Handler, identifier RequestIdentifier, cache
 			cookies := resp.Cookies()
 			body, err := ioutil.ReadAll(resp.Body)
 			// err = no body?
-			if err != nil {
-				// set cookies
-				for _, cookie := range cookies {
-					http.SetCookie(w, cookie)
-				}
-				// set status codes
-				w.WriteHeader(statusCode)
-				// set header fields
-				for key, values := range header {
-					for _, val := range values {
-						w.Header().Add(key, val)
-					}
-				}
-				return
+			// set cookies
+			for _, cookie := range cookies {
+				http.SetCookie(w, cookie)
 			}
+			// set status codes
+			w.WriteHeader(statusCode)
+			// set header fields
+			for key, values := range header {
+				for _, val := range values {
+					w.Header().Add(key, val)
+				}
+			}
+			if err == nil {
+				w.Write(body)
+			}
+
+			// cache response data
 			c.WriteOne(WriteOneRequest{
 				ItemID: id,
 				Expiry: time.Now().Add(identifier.ItemTTL()),
@@ -104,30 +122,23 @@ func (c *Cache) WrapHandler(in http.Handler, identifier RequestIdentifier, cache
 		// decode cached response
 		cachedres := CachedResponse{}
 		err = item.DecodeInto(&cachedres)
-
-		// handle decoding err
+		// if error serve http anyway but log err
 		if err != nil {
 			c.logErr(err)
-			// serve http if error
 			in.ServeHTTP(w, r)
 			return
 		}
 
-		// respond
-		// set cookies
+		// respond to request with cached data
 		for _, cookie := range cachedres.Cookies {
 			http.SetCookie(w, cookie)
 		}
-		// set status code
 		w.WriteHeader(cachedres.StatusCode)
-		// set header fields
 		for key, values := range cachedres.Header {
 			for _, val := range values {
 				w.Header().Add(key, val)
 			}
 		}
-		// set body
 		w.Write(cachedres.Body)
-
 	}), nil
 }

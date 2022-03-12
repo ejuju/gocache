@@ -53,12 +53,12 @@ func TestCacheStart(t *testing.T) {
 	}
 
 	// read data after expiry
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	_, err = c.ReadOne(ReadOneRequest{
 		ItemID: "0",
 	})
 	if !errors.Is(err, ErrUnknownID) {
-		t.Error("item should have been delete by cleanup routine")
+		t.Error("item should have been deleted by cleanup routine")
 		return
 	}
 }

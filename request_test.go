@@ -18,16 +18,12 @@ func TestWriteOne(t *testing.T) {
 	defer c.Stop()
 
 	// encode data
-	encoded, err := encode("test data")
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	testData := "test data"
 
 	// write data
 	err = c.WriteOne(WriteOneRequest{
 		ItemID: "0",
-		Value:  encoded,
+		Value:  testData,
 	})
 	if err != nil {
 		t.Error(err)
@@ -44,8 +40,8 @@ func TestWriteOne(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if str != "test data" {
-		t.Error(err)
+	if str != testData {
+		t.Error("unexpected decoded result", "expected "+testData, "got "+str)
 		return
 	}
 
