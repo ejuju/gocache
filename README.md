@@ -12,12 +12,14 @@ Package `gocache` provides a simple cache
 
 ---
 
-### Roadmap
+### Features
 
 #### Storage
 
+- [x] Set lifespan on data
 - [x] In memory cache
 - [x] Caching large data to temporary files
+- [ ] Something similar to SQL transactions (rollback / commit)
 
 #### Logging
 
