@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-//
+// RequestIdentifier generates an ID from a http request and provides the item ttl in the cache
 type RequestIdentifier interface {
 	Identify(r *http.Request) string
 	ItemTTL() time.Duration
 }
 
-//
+// NewRequestIdentifier instanciates a new DefaultRequestIdentifier
 func NewRequestIdentifier(itemTTL time.Duration, identifyFunc func(*http.Request) string) *DefaultRequestIdentifier {
 	return &DefaultRequestIdentifier{
 		itemTTL:      itemTTL,
@@ -22,23 +22,23 @@ func NewRequestIdentifier(itemTTL time.Duration, identifyFunc func(*http.Request
 	}
 }
 
-//
+// DefaultRequestIdentifier implements the RequestIdentifier interface
 type DefaultRequestIdentifier struct {
 	itemTTL      time.Duration
 	identifyFunc func(*http.Request) string
 }
 
-//
+// Identify returns an ID based on the identity func defined
 func (dri *DefaultRequestIdentifier) Identify(r *http.Request) string {
 	return dri.identifyFunc(r)
 }
 
-//
+// ItemTTL defines for how long the response will be stored in the cache
 func (dri *DefaultRequestIdentifier) ItemTTL() time.Duration {
 	return dri.itemTTL
 }
 
-//
+// CachedResponse holds data necessary for responding to identified http requests
 type CachedResponse struct {
 	StatusCode int
 	Header     http.Header

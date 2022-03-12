@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-// store requests in file
-// following fmt:
-// {opType uint8}+":"+{operation writeOperation | deleteOperation etc.}
-
 // Keys to identify request types
 const (
 	KeyWriteOne uint8 = iota
@@ -26,22 +22,18 @@ type WriteOneRequest struct {
 	Expiry     time.Time
 }
 
-//
+// EraseOneRequest represents a request from the client to delete an item in the cache
 type EraseOneRequest struct {
 	receivedAt time.Time
 	ItemID     string
 }
 
-//
+// ReadOneRequest represents a request from the client to read an item in the cache
 type ReadOneRequest struct {
 	receivedAt time.Time
 	ItemID     string
 	// filters []Filter
 }
-
-// //
-// type Filter struct {
-// }
 
 // WriteOne creates or update an item if the request is valid
 // when the item exceeds the size limit, it is stored to a temporary file
