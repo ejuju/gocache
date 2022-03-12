@@ -22,7 +22,7 @@ const (
 type WriteOneRequest struct {
 	receivedAt time.Time
 	ItemID     string
-	Value      []byte
+	Value      interface{}
 	Expiry     time.Time
 }
 
@@ -60,8 +60,14 @@ func (c *Cache) WriteOne(woreq WriteOneRequest) error {
 		expiry: woreq.Expiry,
 	}
 
+	// encode data
+	encoded, err := encode(woreq.Value)
+	if err != nil {
+		return err
+	}
+
 	// if max item size exceeded, write data to temp file and store pointer to file in map
-	if len(woreq.Value) > c.config.SizeLimit {
+	if len(encoded) > c.config.SizeLimit {
 		filename := "_bigitem_*.gdbi"
 		f, err := os.CreateTemp(c.dirpath, filename)
 		if err != nil {
@@ -69,11 +75,6 @@ func (c *Cache) WriteOne(woreq WriteOneRequest) error {
 		}
 		defer f.Close()
 
-		// encode data
-		encoded, err := encode(woreq.Value)
-		if err != nil {
-			return err
-		}
 		// store data to file and set pointer to file on item
 		_, err = f.Write(encoded)
 		if err != nil {
@@ -84,8 +85,8 @@ func (c *Cache) WriteOne(woreq WriteOneRequest) error {
 		return nil
 	}
 
-	// add data to item struct and write item to map
-	item.data = woreq.Value
+	// add encoded data to item struct and write item to map
+	item.data = encoded
 	c.items[woreq.ItemID] = item
 
 	return nil
