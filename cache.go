@@ -14,6 +14,7 @@ type Cache struct {
 	stop    chan struct{}    // stop chan
 	config  CacheConfig      // configuration (settings/limits/constraints)
 	dirpath string           // local directory path
+	errlog  []error          // error log
 }
 
 // CacheConfig holds the cache configuration

@@ -2,7 +2,7 @@
 
 ---
 
-Package `gocache` provides a simple cache
+Package `gocache` provides a simple cache for web services
 
 - It uses in-memory storage by default (in a `map[string]*Item`) & temporary disk storage for items larger than a certain treshold
 - It is concurrency-friendly (using sync.RWMutex)
@@ -24,6 +24,7 @@ Package `gocache` provides a simple cache
 #### Logging
 
 - [ ] Request log
+- [ ] Error log
 
 #### Querying
 
@@ -31,5 +32,5 @@ Package `gocache` provides a simple cache
 
 #### Web
 
-- [ ] Handle http request/response caching (by hashing request data for ID and storing response)
-- [ ] Provide middleware / http.Handler to easily filter cached request
+- [ ] Handle HTTP request/response caching (by hashing some of the request data to generate unique ID and storing prepared HTTP response)
+- [ ] Provide middleware / http.Handler to directly respond to cached request
