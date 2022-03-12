@@ -6,7 +6,7 @@ Planned features:
 
 ## v1.0
 
-- [ ] Caching data in memory
+- [ ] In memory cache
 - [ ] Caching large data to temporary files
 - [ ] Storing mutations in a history to be able to reconstruct database from a history
 
