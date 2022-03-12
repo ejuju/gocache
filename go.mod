@@ -1,3 +1,3 @@
-module github.com/ejuju/gdb
+module github.com/ejuju/gocache
 
 go 1.17
