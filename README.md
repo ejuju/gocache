@@ -21,6 +21,10 @@ Package `gocache` provides a simple cache for web services
 - [x] Caching large data to temporary files
 - [ ] Something similar to SQL transactions (rollback / commit)
 
+#### Web
+
+- [x] Handle HTTP request/response caching (by using some of the request data to generate unique ID and storing prepared HTTP response)
+
 #### Logging
 
 - [ ] Request log
@@ -29,8 +33,3 @@ Package `gocache` provides a simple cache for web services
 #### Querying
 
 - [ ] Filters for read requests
-
-#### Web
-
-- [ ] Handle HTTP request/response caching (by hashing some of the request data to generate unique ID and storing prepared HTTP response)
-- [ ] Provide middleware / http.Handler to directly respond to cached request
