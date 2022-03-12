@@ -1,16 +1,13 @@
-# Experimental Golang cache for HTTP response cache
+# Simple cache for Golang
 
-`gdb` is a JSON-based data storage engine
+Package `gocache` provides a simple cache.
 
-Planned features:
+- It uses in-memory storage & on-disk storage for items larger than a certain treshold
+- It encodes data as JSON
 
-## v1.0
+### Roadmap
 
-- [ ] In memory cache
-- [ ] Caching large data to temporary files
-- [ ] Storing mutations in a history to be able to reconstruct database from a history
-
-## v2.0
-
-- [ ] Make gdb a http.Handler to run database on standalone server/routine if needed
-- [ ] Allow for easily subscribing to updates via websocket
+- [x] In memory cache
+- [x] Caching large data to temporary files
+- [ ] Request log
+- [ ] Filters for read requests
