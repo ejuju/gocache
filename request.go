@@ -44,6 +44,7 @@ type ReadOneRequest struct {
 // }
 
 // writeOne creates or update an item if the request is valid
+// when the item exceeds the size limit, it is stored to a temporary file
 func (c *Cache) writeOne(woreq WriteOneRequest) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -59,15 +60,15 @@ func (c *Cache) writeOne(woreq WriteOneRequest) error {
 		expiry: woreq.expiry,
 	}
 
-	// if max item size exceeded, write data to file and store pointer to file in map
+	// if max item size exceeded, write data to temp file and store pointer to file in map
 	if len(woreq.value) > c.config.sizelimit {
 		filename := "_bigitem_*.gdbi"
 		f, err := os.CreateTemp(c.dirpath, filename)
 		if err != nil {
 			return err
 		}
-		for {
-		}
+		defer f.Close()
+
 		// encode data
 		encoded, err := encode(woreq.value)
 		if err != nil {
